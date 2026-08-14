@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bentil Logistics - Exam Revision Platform</title>
+<style>
+  :root {
+    --primary: #ff69b4;
+    --primary-hover: #ff1493;
+    --bg-pink: #fff0f6;
+    --card-bg: #ffffff;
+    --text-color: #4a4a4a;
+    --correct-bg: #d4edda;
+    --correct-text: #155724;
+    --wrong-bg: #f8d7da;
+    --wrong-text: #721c24;
+    --accent-purple: #c71585;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-pink);
+    color: var(--text-color);
+    margin: 0;
+    padding: 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 680px;
+    background: var(--card-bg);
+    border-radius: 24px;
+    padding: 35px 25px;
+    box-shadow: 0 12px 30px rgba(255, 105, 180, 0.25);
+    border: 3px solid #ffb6c1;
+    text-align: center;
+    position: relative;
+  }
+
+  /* Header Bar with Music Controls & Score Tracker */
+  .top-header-bar {
+    background: #ffe4e1;
+    border: 2px solid #ff69b4;
+    border-radius: 20px;
+    padding: 8px 16px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.88rem;
+    color: var(--accent-purple);
+    font-weight: 600;
+  }
+
+  .score-badge {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    box-shadow: 0 2px 6px rgba(40, 167, 69, 0.3);
+  }
+
+  .music-controls button {
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 5px 10px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    cursor: pointer;
+    margin-left: 4px;
+  }
+
+  .music-controls button:hover {
+    background-color: var(--primary-hover);
+  }
+
+  h1, h2, h3 {
+    color: var(--accent-purple);
+    margin-top: 10px;
+  }
+
+  .btn {
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    padding: 14px 32px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 20px;
+    box-shadow: 0 4px 12px rgba(255, 105, 180, 0.4);
+    display: inline-block;
+  }
+
+  .btn:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(255, 20, 147, 0.4);
+  }
+
+  .options-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  .option-btn {
+    background-color: #fffafc;
+    border: 2px solid #ffc0cb;
+    padding: 14px 18px;
+    border-radius: 14px;
+    font-size: 1rem;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #333;
+    font-weight: 500;
+  }
+
+  .option-btn:hover {
+    background-color: #ffe4e1;
+    border-color: #ff69b4;
+  }
+
+  .feedback {
+    margin-top: 20px;
+    padding: 16px;
+    border-radius: 14px;
+    text-align: left;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    display: none;
+  }
+
+  .feedback.correct {
+    background-color: var(--correct-bg);
+    color: var(--correct-text);
+    border: 2px solid #28a745;
+  }
+
+  .feedback.wrong {
+    background-color: var(--wrong-bg);
+    color: var(--wrong-text);
+    border: 2px solid #dc3545;
+  }
+
+  .fun-card {
+    background-color: #fff0f5;
+    border: 2px dashed #ff69b4;
+    border-radius: 18px;
+    padding: 22px;
+    margin-top: 15px;
+    text-align: center;
+  }
+
+  .badge {
+    background: linear-gradient(135deg, #ff69b4, #c71585);
+    color: white;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    display: inline-block;
+    margin-bottom: 12px;
+    letter-spacing: 0.5px;
+  }
+
+  .hidden {
+    display: none !important;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header Bar: Music + Live Score Tracker -->
+  <div class="top-header-bar">
+    <span id="now-playing-text">🎵 Background Beat: Ready</span>
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <span class="score-badge" id="score-display">⭐ Score: 0</span>
+      <div class="music-controls">
+        <button id="toggle-music-btn" onclick="togglePlayPause()">⏸ Pause</button>
+        <button onclick="skipTrack()">⏭ Skip</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Audio Element -->
+  <audio id="bg-audio" preload="auto"></audio>
+
+  <!-- PAGE 1: Welcome -->
+  <div id="page-welcome">
+    <span class="badge">Bentil Logistics Platform</span>
+    <h1>Welcome to Bentil Logistics! 🌸✨</h1>
+    <p style="font-size: 1.1rem; line-height: 1.6; margin-top: 15px;">
+      Are you ready to kick off? Let's master every single slide together with chill background beats playing, track your live score, and secure that A tomorrow! 💕
+    </p>
+    <button class="btn" onclick="startWithMusic(1)">YES! 💕</button>
+  </div>
+
+  <!-- PAGE 2: Slide Intro -->
+  <div id="page-intro" class="hidden">
+    <span class="badge" id="intro-slide-badge">Slide 1 of 5</span>
+    <h2 id="intro-title">Beginning Slide 1 📚</h2>
+    <p id="intro-desc" style="font-size: 1.05rem; color: #555; line-height: 1.5; margin-top: 15px;"></p>
+    <button class="btn" onclick="startQuestion()">Start Questions ✨</button>
+  </div>
+
+  <!-- PAGE 3: Question View -->
+  <div id="page-question" class="hidden">
+    <span class="badge" id="q-slide-badge">Slide 1</span>
+    <p id="q-number" style="font-size: 0.9rem; color: #888; font-weight: 600; margin-top: 5px;">Question 1 of 30</p>
+    <h3 id="q-text" style="font-size: 1.15rem; line-height: 1.4; margin-bottom: 15px;">Question text...</h3>
+
+    <div class="options-grid" id="options-container">
+      <!-- Options dynamically inserted -->
+    </div>
+
+    <div id="feedback-box" class="feedback"></div>
+
+    <button id="next-q-btn" class="btn hidden" onclick="nextQuestion()">Next Question ➔</button>
+  </div>
+
+  <!-- PAGE 4: Interstitial (Fun Fact / Joke / Lab Fact) -->
+  <div id="page-fun" class="hidden">
+    <span class="badge" id="fun-badge">Fun Fact 🎉</span>
+    <h2 id="fun-title">Take a Quick Break! ✨</h2>
+    <div class="fun-card">
+      <p id="fun-text" style="font-size: 1.05rem; color: #333; line-height: 1.6; margin: 0;"></p>
+    </div>
+    <p style="margin-top: 20px; font-weight: bold; color: var(--accent-purple); font-size: 1.1rem;">Should we continue? 💕</p>
+    <button class="btn" onclick="continueFromFun()">YES! ➔</button>
+  </div>
+
+  <!-- PAGE 5: Completion Choice -->
+  <div id="page-completion" class="hidden">
+    <span class="badge">Revision Completed 🎉</span>
+    <h2>All Slides Successfully Completed! 🏆</h2>
+    <p id="final-score-text" style="font-size: 1.2rem; font-weight: bold; color: var(--accent-purple); margin-top: 10px;"></p>
+    <p style="font-size: 1.05rem; line-height: 1.6; color: #555;">
+      You have thoroughly revised all 5 study slide presentations! Do you want to restart with fresh mixed questions or are you done for the day?
+    </p>
+    <div style="display: flex; gap: 12px; justify-content: center; margin-top: 25px; flex-wrap: wrap;">
+      <button class="btn" onclick="restartApp()">Restart Quiz 🔄</button>
+      <button class="btn" style="background-color: #6c757d;" onclick="finishApp()">Done for the day 💖</button>
+    </div>
+  </div>
+
+  <!-- PAGE 6: Final Well Done -->
+  <div id="page-final" class="hidden">
+    <span class="badge">Great Job! ✨</span>
+    <h1>Well Done, Mrs. Bentil! 🎓</h1>
+    <p id="end-score-summary" style="font-size: 1.25rem; font-weight: bold; color: #28a745; margin-top: 10px;"></p>
+    <p style="font-size: 1.15rem; line-height: 1.6; color: #4a4a4a; margin-top: 15px;">
+      You are completely prepared and ready for your exam tomorrow. Go shine, excel, and secure that A!
+    </p>
+    <p style="font-size: 2rem; margin-top: 20px;">💖🌸📚👑</p>
+  </div>
+</div>
+
+<script>
+// --- LIVE SCORE SYSTEM ---
+let userScore = 0;
+let answeredCurrentQ = false;
+
+function updateScoreDisplay() {
+  document.getElementById("score-display").innerText = `⭐ Score: ${userScore}`;
+}
+
+// --- AUDIO PLAYLIST SYSTEM ---
+const playlist = [
+  { title: "Vibin - Purple Cat", src: "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3" },
+  { title: "So Vibe - Asu", src: "https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3?filename=chill-lofi-song-8444.mp3" },
+  { title: "Apple Turnover - Sleepy Fish & Co.", src: "https://cdn.pixabay.com/download/audio/2022/11/06/audio_2c9183d2d2.mp3?filename=sweet-lofi-chill-hop-126207.mp3" },
+  { title: "Cloud Watching - Purple Cat", src: "https://cdn.pixabay.com/download/audio/2023/07/30/audio_9b6574a4cf.mp3?filename=lofi-chill-medium-version-159456.mp3" },
+  { title: "Saturday Morning - Purple Cat", src: "https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a7321d.mp3?filename=lofi-music-18913.mp3" }
+];
+
+let currentTrackIndex = 0;
+const audioPlayer = document.getElementById("bg-audio");
+const nowPlayingText = document.getElementById("now-playing-text");
+const toggleBtn = document.getElementById("toggle-music-btn");
+let isAudioStarted = false;
+
+function loadTrack(index) {
+  currentTrackIndex = index % playlist.length;
+  const track = playlist[currentTrackIndex];
+  audioPlayer.src = track.src;
+  nowPlayingText.innerText = `🎵 ${track.title}`;
+}
+
+function playTrack() {
+  audioPlayer.play().then(() => {
+    toggleBtn.innerText = "⏸ Pause";
+  }).catch(err => {
+    console.log("Autoplay waiting for user interaction.");
+  });
+}
+
+function togglePlayPause() {
+  if (!isAudioStarted) {
+    loadTrack(0);
+    isAudioStarted = true;
+    playTrack();
+    return;
+  }
+  if (audioPlayer.paused) {
+    audioPlayer.play();
+    toggleBtn.innerText = "⏸ Pause";
+  } else {
+    audioPlayer.pause();
+    toggleBtn.innerText = "▶ Play";
+  }
+}
+
+function skipTrack() {
+  currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
+  loadTrack(currentTrackIndex);
+  playTrack();
+}
+
+audioPlayer.addEventListener("ended", () => {
+  skipTrack();
+});
+
+function startWithMusic(slideNum) {
+  if (!isAudioStarted) {
+    loadTrack(0);
+    isAudioStarted = true;
+    playTrack();
+  }
+  userScore = 0;
+  updateScoreDisplay();
+  goToSlideIntro(slideNum);
+}
+
+// --- QUIZ & SLIDE NAVIGATION SYSTEM ---
+let currentSlide = 1;
+let currentQIndex = 0;
+let questionsInSlide = [];
+
+const slideMeta = {
+  1: { title: "Beginning Slide 1: Academic & Oral Presentations 🎓", desc: "We are going to cover Slide 1 in depth (30 questions total). We will do 5 questions, then a Fun Fact, 5 questions, then a Romantic Joke, 5 questions, then a Lab Fact, and so on!" },
+  2: { title: "Beginning Slide 2: Barriers to Effective Communication 🛑", desc: "Slide 1 successfully completed! Now moving into Slide 2 (30 questions total). We will do 5 questions, then a Fun Fact, 5 questions, then a Romantic Joke, and so on!" },
+  3: { title: "Beginning Slide 3: Formal Letters Writing ✉️", desc: "Slide 2 successfully completed! Now moving into Slide 3 (30 questions total). 5 questions per set with fun breaks!" },
+  4: { title: "Beginning Slide 4: Curriculum Vitae (CV) 📄", desc: "Slide 3 successfully completed! Now moving into Slide 4 (30 questions total). Let's keep revising and mastering every concept!" },
+  5: { title: "Beginning Slide 5: Minutes Writing 📝", desc: "Slide 4 successfully completed! Final slide! 30 questions covering meeting minutes, format, verbatim, action minutes, and errors to avoid!" }
+};
+
+const slideFunFacts = {
+  1: [
+    { type: "Fun Fact 🎉", title: "History Fact 🏫", text: "Did you know? Exactly 70 years before your 1st month dating anniversary on August 15th, 2026 (back on August 15th, 1956), Krobo Girls Senior High School (Krobos) and Pope John Senior High School in Koforidua (POJOBA) were forging foundational excellence! 🌟" },
+    { type: "Romantic Joke 😂", title: "Science & Love Joke 🔬", text: "Are you made of Copper and Tellurium? Because you are Cu-Te! 💖 And just like a strong covalent bond, Mr. Bentil's love for Mrs. Bentil is completely unbreakable!" },
+    { type: "Love & Lab Fact 🧪", title: "Mr. & Mrs. Bentil Special 🧲", text: "Lab Fact: Magnetism is strong, but Mr. Bentil loves Mrs. Bentil even more than opposite magnetic poles attract! You two have the ultimate laboratory chemistry! ⚛️💖" },
+    { type: "Fun Fact 🎉", title: "Special Milestone History 📅", text: "On May 15th, 2026, when you first met, history was made! And when you first entered university on January 8th, 2026, it paved the way for securing that A grade tomorrow! 🎓✨" },
+    { type: "Romantic Joke 😂", title: "Lab Joke of the Day 🔬", text: "Why did the red blood cell fall in love with the lab scientist? Because it felt a connection right from the heart! ❤️ Mr. Bentil & Mrs. Bentil forever!" },
+    { type: "Slide 1 Completed! 🏆", title: "Slide 1 Successfully Mastered! 🎉", text: "Awesome job, Mrs. Bentil! You have answered all 30 questions on Slide 1! Are you ready to move to Slide 2?" }
+  ],
+  2: [
+    { type: "Fun Fact 🎉", title: "Krobo Girls & Pope John History 🏛️", text: "Around June 25th (celebrating your special birthday date!), Krobo Girls SHS became known as one of the top premier schools partnered with Pope John Senior High School in academic competitions! 🏫✨" },
+    { type: "Romantic Joke 😂", title: "Communication Joke 🗣️", text: "Mr. Bentil asked Mrs. Bentil: 'Is there any barrier between us?' Mrs. Bentil replied: 'Never! Because our communication is 100% Clear, Concise, and Concrete!' 💕" },
+    { type: "Love & Lab Fact 🧪", title: "Mr. & Mrs. Bentil Special 💡", text: "Lab Fact: Mr. Bentil's heart radiates more energy for Mrs. Bentil than a high-frequency bioluminescent glow under a fluorescence microscope! 🔬💖" },
+    { type: "Fun Fact 🎉", title: "Special Date Milestone 🎓", text: "Remember September 15th, 2025 when SHS was completed? Look how far you've come! Tomorrow's exam is just another stepping stone to greatness! 🌟" },
+    { type: "Romantic Joke 😂", title: "Physiology Joke 🫀", text: "My love for you is like a cardiac muscle contraction—involuntary, continuous, and never stops pumping! ❤️" },
+    { type: "Slide 2 Completed! 🏆", title: "Slide 2 Successfully Mastered! 🎉", text: "Fantastic! All 30 questions on Barriers in Communication are complete! Ready for Slide 3?" }
+  ],
+  3: [
+    { type: "Fun Fact 🎉", title: "Pope John SHS History 🎒", text: "Did you know Pope John Senior High School and Minor Seminary was founded in Koforidua and has produced top leaders, doctors, and scholars across Ghana? 🇬🇭 premier excellence!" },
+    { type: "Romantic Joke 😂", title: "Formal Letter Joke ✉️", text: "If Mr. Bentil wrote a formal letter to Mrs. Bentil, the subject line would be: 'RE: Application for Infinite Love', and the subscription would be 'Yours Forever & Faithfully'! 💌" },
+    { type: "Love & Lab Fact 🧪", title: "Mr. & Mrs. Bentil Special ⚡", text: "Lab Fact: Mr. Bentil loves Mrs. Bentil more than free electrons are attracted to the anode in an electric field! Unstoppable flow of love! ⚡💖" },
+    { type: "Fun Fact 🎉", title: "November 19 Special 🎂", text: "Celebrating November 19th! A date marked with success and joy, bringing two brilliant minds together to conquer every academic challenge!" },
+    { type: "Romantic Joke 😂", title: "Chemistry Joke ⚗️", text: "Are you a solution of sodium chloride and water? Because you bring balance and chemistry to my life every single day! 🧂💧❤️" },
+    { type: "Slide 3 Completed! 🏆", title: "Slide 3 Successfully Mastered! 🎉", text: "Incredible! 30 questions on Formal Letters complete! Ready for Slide 4 (CVs)?" }
+  ],
+  4: [
+    { type: "Fun Fact 🎉", title: "Krobo Girls SHS Pride 🌸", text: "Krobo Girls SHS in Odumase Krobo is renowned for producing women of dignity, intellect, and grace! A true home of excellence!" },
+    { type: "Romantic Joke 😂", title: "CV Joke 📄", text: "Under the 'Work Experience' section of Mr. Bentil's CV, the top position is: 'Full-time Lover & Protector of Mrs. Bentil (2026–Forever)'! 💼❤️" },
+    { type: "Love & Lab Fact 🧪", title: "Mr. & Mrs. Bentil Special 🧬", text: "Lab Fact: Human DNA is 99.9% identical, but the remaining 0.1% makes Mrs. Bentil 100% perfect in Mr. Bentil's eyes! 🧬💖" },
+    { type: "Fun Fact 🎉", title: "August 15 Anniversary Fact 🌹", text: "August 15th, 2026 will mark your 1st month dating anniversary! Every question you practice today is a step toward celebrating with an A on your transcript! 📜✨" },
+    { type: "Romantic Joke 😂", title: "Physics Joke 🧲", text: "According to Newton's Law of Universal Gravitation, the force of attraction between Mr. Bentil and Mrs. Bentil increases exponentially every second! 🍏❤️" },
+    { type: "Slide 4 Completed! 🏆", title: "Slide 4 Successfully Mastered! 🎉", text: "Superb! All 30 questions on CVs are done! Only 1 final slide left: Minutes Writing!" }
+  ],
+  5: [
+    { type: "Fun Fact 🎉", title: "Krobo & POJOBA Bond 🤝", text: "The historical friendship between Krobo Girls and Pope John SHS in Eastern Region has always symbolized unity, academic competition, and leadership!" },
+    { type: "Romantic Joke 😂", title: "Minutes Writing Joke 📝", text: "Item 1 on the Agenda of Mr. Bentil's heart: 'Resolution passed unanimously that Mrs. Bentil is the most beautiful and intelligent girl in the world!' Approved by Chairperson! 🔨💖" },
+    { type: "Love & Lab Fact 🧪", title: "Mr. & Mrs. Bentil Special 🔬", text: "Lab Fact: Under the highest power objective lens, the diagnosis is clear: Mr. Bentil's love for Mrs. Bentil is 100% pure and unadulterated! 🔬💕" },
+    { type: "Fun Fact 🎉", title: "May 15 First Met Milestone 💫", text: "May 15th, 2026 was the spark, and tomorrow's exam will be the victory! You've revised all 5 slides thoroughly!" },
+    { type: "Romantic Joke 😂", title: "Final Love Joke 👑", text: "If love were an exam, Mrs. Bentil would get an A+++ without even studying! But for tomorrow's exam, you've already secured the A! 🎓❤️" },
+    { type: "All Slides Completed! 🏆", title: "Exam Prep Complete! 🎉", text: "CONGRATULATIONS! You have completed all 150 questions across all 5 slides! You are 100% ready to get an A!" }
+  ]
+};
+
+function generateQuestionsForSlide(slide) {
+  let questions = [];
+  if (slide === 1) {
+    const pool = [
+      { t: "Academic presentation", d: "a formal structured presentation of researched ideas, findings, or arguments delivered in an educational setting to communicate knowledge clearly." },
+      { t: "Oral presentation", d: "a spoken delivery of information to an audience where a speaker communicates verbally, often supported by notes or visuals." },
+      { t: "Informing purpose", d: "delivering clear, concise, and factual updates to increase the audience's understanding of a topic." },
+      { t: "Persuading purpose", d: "advocating for a specific position, idea, or call to action using logical arguments and emotional appeal." },
+      { t: "Educating purpose", d: "teaching a skill, process, or concept with emphasis on clarity, step-by-step instruction, and engagement." },
+      { t: "Reporting findings", d: "presenting research results, laboratory metrics, or project outcomes with accuracy and objectivity." },
+      { t: "Audience analysis", d: "evaluating the audience's background, knowledge level, interests, and needs prior to presenting." },
+      { t: "Adapting language", d: "modifying vocabulary and tone (e.g., simplifying technical jargon) so listeners can understand easily." },
+      { t: "Greeting the audience", d: "the initial step of an oral presentation that builds rapport, shows respect, and welcomes listeners." },
+      { t: "Introducing the topic", d: "clearly stating the subject matter at the beginning of a presentation to focus audience attention." },
+      { t: "Stating objectives", d: "outlining the key goals and learning outcomes at the start of a talk." },
+      { t: "Thesis statement", d: "a concise statement presenting the central argument or main point of an academic presentation." },
+      { t: "Presentation outline", d: "a structured overview showing the logical sequence of main points to be covered." },
+      { t: "Visual aids", d: "supporting media such as slides, charts, or diagrams used to enhance understanding and maintain interest." },
+      { t: "Extemporaneous delivery", d: "delivering a speech using brief outline notes rather than reading word-for-word." },
+      { t: "Read-speech delivery", d: "reading a complete written text aloud to the audience word-for-word." },
+      { t: "Handling Q&A", d: "listening carefully to audience questions, staying calm, and giving concise, honest responses." },
+      { t: "Admitting when unsure", d: "acknowledging lack of immediate knowledge during Q&A rather than providing inaccurate information." },
+      { t: "Class presentation", d: "a structured oral task where students demonstrate mastery of course material to peers and lecturers." },
+      { t: "Body of presentation", d: "the main section where arguments, evidence, and researched details are fully developed." }
+    ];
+    for (let i = 0; i < 20; i++) {
+      let item = pool[i % pool.length];
+      let wrong1 = pool[(i + 1) % pool.length], wrong2 = pool[(i + 2) % pool.length], wrong3 = pool[(i + 3) % pool.length];
+      questions.push({ q: `What term refers to ${item.d}?`, options: shuffle([{ text: item.t, correct: true, exp: `${item.t} is defined as ${item.d}` }, { text: wrong1.t, correct: false, exp: `${wrong1.t} refers to ${wrong1.d}` }, { text: wrong2.t, correct: false, exp: `${wrong2.t} refers to ${wrong2.d}` }, { text: wrong3.t, correct: false, exp: `${wrong3.t} refers to ${wrong3.d}` }]) });
+    }
+    for (let i = 0; i < 10; i++) {
+      let item = pool[i * 2], wrong1 = pool[(i * 2 + 1) % pool.length], wrong2 = pool[(i * 2 + 3) % pool.length], wrong3 = pool[(i * 2 + 5) % pool.length];
+      questions.push({ q: `[Revision Refresh] Which term describes the concept where a speaker deals with ${item.d.toLowerCase()}?`, options: shuffle([{ text: item.t, correct: true, exp: `${item.t} is indeed defined as ${item.d}` }, { text: wrong1.t, correct: false, exp: `${wrong1.t} is defined as ${wrong1.d}` }, { text: wrong2.t, correct: false, exp: `${wrong2.t} is defined as ${wrong2.d}` }, { text: wrong3.t, correct: false, exp: `${wrong3.t} is defined as ${wrong3.d}` }]) });
+    }
+  } else if (slide === 2) {
+    const pool = [
+      { t: "Clarity", d: "using direct, clear language and avoiding ambiguous terms or jargon in communication." },
+      { t: "Conciseness", d: "keeping a message brief, direct, and complete without unnecessary wordiness." },
+      { t: "Concreteness", d: "providing specific facts, details, real-world examples, and exact figures." },
+      { t: "Correctness", d: "ensuring accuracy in grammar, facts, figures, and appropriate tone." },
+      { t: "Completeness", d: "including all necessary information so the receiver can take immediate action." },
+      { t: "Coherence", d: "maintaining logical flow where every sentence connects logically to the main idea." },
+      { t: "Courtesy", d: "showing politeness, respect, empathy, and consideration for the receiver." },
+      { t: "Semantic barrier", d: "communication obstacles stemming from complex technical jargon, ambiguous words, or differing word meanings." },
+      { t: "Organizational barrier", d: "obstacles arising from corporate hierarchy, rigid rules, status differences, and inadequate facilities." },
+      { t: "Linguistic barrier", d: "communication challenges caused by differences in language, accents, regional dialects, or vocabulary." },
+      { t: "Cultural barrier", d: "obstacles stemming from differing social norms, values, beliefs, stereotypes, and ethnocentrism." },
+      { t: "Psychological barrier", d: "communication interference caused by emotional state, defensiveness, prejudice, or distrust." },
+      { t: "Physical distraction", d: "environmental factors like loud background noise, poor lighting, or uncomfortable seating." },
+      { t: "Physiological barrier", d: "bodily or health limitations like hearing loss, vision impairment, speech deficits, or extreme fatigue." },
+      { t: "Social barrier", d: "obstacles arising from social stratification, class differences, or social status gaps." },
+      { t: "Ethnocentrism", d: "evaluating other cultures based on the preconceptions of one's own culture." },
+      { t: "Filtering", d: "manipulating information so it will be seen more favorably by the receiver." },
+      { t: "Active listening", d: "fully concentrating, understanding, responding, and remembering what is being said." },
+      { t: "Verifying non-verbal cues", d: "checking silence, gestures, and personal space, recognizing they vary by culture." },
+      { t: "Feedback loop", d: "the receiver's response that allows the sender to verify whether the message was accurately understood." }
+    ];
+    for (let i = 0; i < 20; i++) {
+      let item = pool[i % pool.length];
+      let wrong1 = pool[(i + 1) % pool.length], wrong2 = pool[(i + 2) % pool.length], wrong3 = pool[(i + 3) % pool.length];
+      questions.push({ q: `What communication term is defined as ${item.d}?`, options: shuffle([{ text: item.t, correct: true, exp: `${item.t} means ${item.d}` }, { text: wrong1.t, correct: false, exp: `${wrong1.t} means ${wrong1.d}` }, { text: wrong2.t, correct: false, exp: `${wrong2.t} means ${wrong2.d}` }, { text: wrong3.t, correct: false, exp: `${wrong3.t} means ${wrong3.d}` }]) });
+    }
+    for (let i = 0; i < 10; i++) {
+      let item = pool[i * 2], wrong1 = pool[(i * 2 + 1) % pool.length], wrong2 = pool[(i * 2 + 3) % pool.length], wrong3 = pool[(i * 2 + 5) % pool.length];
+      questions.push({ q: `[Revision Refresh] In communication studies, which concept addresses ${item.d.toLowerCase()}?`, options: shuffle([{ text: item.t, correct: true, exp: `${item.t} is defined as ${item.d}` }, { text: wrong1.t, correct: false, exp: `${wrong1.t} is defined as ${wrong1.d}` }, { text: wrong2.t, correct: false, exp: `${wrong2.t} is defined as ${wrong2.d}` }, { text: wrong3.t, correct: false, exp: `${wrong3.t} is defined as ${wrong3.d}` }]) });
+    }
+  } else if (slide === 3) {
+    const pool = [
+      { t: "Formal letter", d: "an official written document following a set structure and tone used for official, business, or academic communication." },
+      { t: "Business letter", d: "a formal letter used for negotiations, commercial proposals, transactions, and corporate inquiries." },
+      { t: "Application letter", d: "a formal letter written when applying for job roles, internships, or academic scholarships." },
+      { t: "Complaint letter", d: "a formal letter written to lodge official grievances or dissatisfaction regarding products or services." },
+      { t: "Inquiry letter", d: "a formal letter specifically written to ask for specific information from an institution." },
+      { t: "Request letter", d: "a formal letter asking for permission, official services, support, or assistance." },
+      { t: "Sender's Address", d: "the writer's address placed at the top-left corner of a formal letter." },
+      { t: "Recipient's Address", d: "the complete address of the person or organization receiving the letter, placed below the date." },
+      { t: "Salutation", d: "the formal greeting such as 'Dear Sir/Madam' or 'Dear Dr. Brown'." },
+      { t: "Subject Line", d: "a concise heading stating the core purpose of the formal letter." },
+      { t: "Body of letter", d: "the main section (typically 2-3 structured paragraphs) presenting introduction, details, and call to action." },
+      { t: "Yours faithfully", d: "the standard complimentary close used when the recipient's name is unknown ('Dear Sir/Madam')." },
+      { t: "Yours sincerely", d: "the standard complimentary close used when addressing a named recipient (e.g., 'Dear Mr. Mensah')." },
+      { t: "Subscription", d: "the formal closing phrase written before the signature in a formal letter." },
+      { t: "Avoiding contractions", d: "a key formal letter rule requiring full words (e.g., 'do not') instead of short forms (e.g., 'don't')." },
+      { t: "Date line", d: "the exact calendar date written directly below the sender's address." },
+      { t: "Signature line", d: "the writer's physical signature and full printed name at the bottom of the letter." },
+      { t: "Call to action", d: "the concluding paragraph statement requesting specific response or action from the recipient." },
+      { t: "Enclosure notation", d: "a note at the bottom indicating additional attached documents like certificates or CVs." },
+      { t: "Formal tone", d: "an objective, respectful, and professional writing style free from casual slang." }
+    ];
+    for (let i = 0; i < 20; i++) {
+      let item = pool[i % pool.length];
+      let wrong1 = pool[(i + 1) % pool.length], wrong2 = pool[(i + 2) % pool.length], wrong3 = pool[(i + 3) % pool.length];
+      questions.push({ q: `What component or letter type refers to ${item.d}?`, options: shuffle([{ text: item.t, correct: true, exp: `${item.t} is ${item.d}` }, { text: wrong1.t, correct: false, exp: `${wrong1.t} is ${wrong1.d}` }, { text: wrong2.t, correct: false, exp: `${wrong2.t} is ${wrong2.d}` }, { text: wrong3.t, correct: false, exp: `${wrong3.t} is ${wrong3.d}` }]) });
+    }
+    for (let i = 0; i < 10; i++) {
+      let item = pool[i * 2], wrong1 = pool[(i * 2 + 1) % pool.length], wrong2 = pool[(i * 2 + 3) % pool.length], wrong3 = pool[(i * 2 + 5) % pool.length];
+      questions.push({ q: `[Revision Refresh] In formal correspondence, which term applies when ${item.d.toLowerCase()}?`, options: shuffle([{ text: item.t, correct: true, exp: `${item.t} is defined as ${item.d}` }, { text: wrong1.t, correct: false, exp: `${wrong1.t} is defined as ${wrong1.d}` }, { text: wrong2.t, correct: false, exp: `${wrong2.t} is defined as ${wrong2.d}` }, { text: wrong3.t, correct: false, exp: `${wrong3.t} is defined as ${wrong3.d}` }]) });
+    }
+  } else if (slide === 4) {
+    const pool = [
+      { t: "Curriculum Vitae (CV)", d: "a detailed professional document outlining educational qualifications, work experience, skills, and achievements." },
+      { t: "Personal Information", d: "the CV section providing full name, address, phone number, and professional email address." },
+      { t: "Career Objective", d: "a brief summary statement outlining professional goals and aspirations at the top of a CV." },
+      { t: "Educational Background", d: "the CV section listing schools attended, qualifications obtained, and dates of study." },
+      { t: "Work Experience", d: "the section detailing past employment, job positions, key duties, and accomplishments." },
+      { t: "Technical skills", d: "specific practical abilities such as laboratory techniques, computer proficiency, or software operation." },
+      { t: "Soft skills", d: "interpersonal traits like communication, teamwork, problem-solving, and leadership." },
+      { t: "Achievements and Awards", d: "a section highlighting academic honors, leadership recognitions, and competitive awards." },
+      { t: "References", d: "people (e.g., lecturers, supervisors) who can provide information about an applicant's character and competence." },
+      { t: "Hobbies and Interests", d: "an optional section listing personal activities that demonstrate well-rounded personality." },
+      { t: "Unprofessional email error", d: "a common mistake involving casual email addresses (e.g., partygirl99@gmail.com) instead of formal names." },
+      { t: "Typos and grammatical errors", d: "careless mistakes that create a negative impression on prospective employers." },
+      { t: "Reverse chronological order", d: "listing recent education and work experience first before older positions." },
+      { t: "Conciseness in CV", d: "presenting information clearly without unnecessary personal fluff or filler." },
+      { t: "Tailoring a CV", d: "customizing CV content to match the specific requirements of a job or scholarship." },
+      { t: "Proofreading", d: "carefully reviewing the CV to eliminate spelling mistakes and formatting inconsistencies." },
+      { t: "Truthfulness/Honesty", d: "ensuring all dates, grades, and qualifications listed on the CV are 100% accurate." },
+      { t: "Action verbs", d: "strong verbs (e.g., 'Organized', 'Managed', 'Analyzed') used to describe work duties effectively." },
+      { t: "Professional appearance", d: "using clean fonts, consistent margins, and structured subheadings." },
+      { t: "Job application package", d: "combining a tailored cover letter and CV submitted together to prospective employers." }
+    ];
+    for (let i = 0; i < 20; i++) {
+      let item = pool[i % pool.length];
+      let wrong1 = pool[(i + 1) % pool.length], wrong2 = pool[(i + 2) % pool.length], wrong3 = pool[(i + 3) % pool.length];
+      questions.push({ q: `What CV concept or component is described as ${item.d}?`, options: shuffle([{ text: item.t, correct: true, exp: `${item.t} is ${item.d}` }, { text: wrong1.t, correct: false, exp: `${wrong1.t} is ${wrong1.d}` }, { text: wrong2.t, correct: false, exp: `${wrong2.t} is ${wrong2.d}` }, { text: wrong3.t, correct: false, exp: `${wrong3.t} is ${wrong3.d}` }]) });
+    }
+    for (let i = 0; i < 10; i++) {
+      let item = pool[i * 2], wrong1 = pool[(i * 2 + 1) % pool.length], wrong2 = pool[(i * 2 + 3) % pool.length], wrong3 = pool[(i * 2 + 5) % pool.length];
+      questions.push({ q: `[Revision Refresh] When preparing a CV, which term specifically relates to ${item.d.toLowerCase()}?`, options: shuffle([{ text: item.t, correct: true, exp: `${item.t} is defined as ${item.d}` }, { text: wrong1.t, correct: false, exp: `${wrong1.t} is defined as ${wrong1.d}` }, { text: wrong2.t, correct: false, exp: `${wrong2.t} is defined as ${wrong2.d}` }, { text: wrong3.t, correct: false, exp: `${wrong3.t} is defined as ${wrong3.d}` }]) });
+    }
+  } else if (slide === 5) {
+    const pool = [
+      { t: "Minute-taking", d: "the process of recording proceedings, discussions, decisions, and actions taken during an official meeting." },
+      { t: "Verbatim Minutes", d: "a type of meeting minutes that records every single word spoken word-for-word." },
+      { t: "Summary Minutes", d: "a type of minutes recording key discussion points, main arguments, and decisions made." },
+      { t: "Action Minutes", d: "minutes that focus specifically on decisions reached and designated responsibilities assigned to members." },
+      { t: "Past tense rule", d: "the required grammatical rule that minutes must always be written in past tense." },
+      { t: "Formal tone in minutes", d: "maintaining an objective, professional writing style without personal feelings or informal language." },
+      { t: "Chronological order", d: "recording meeting events strictly in the order in which they occurred." },
+      { t: "Attendance record", d: "the section listing members present, absent with apology, and absent without apology." },
+      { t: "Agenda items", d: "the structured list of topics to be discussed during the meeting." },
+      { t: "Adjournment time", d: "the recorded official time when the meeting was formally concluded." },
+      { t: "Signatures section", d: "the concluding part requiring signatures of the Chairperson and Secretary for formal approval." },
+      { t: "Action points", d: "specific tasks assigned to individuals during the meeting with set deadlines." },
+      { t: "Avoiding personal bias", d: "a vital rule stating that the secretary must never insert personal opinions into minutes." },
+      { t: "Proofreading minutes", d: "reviewing minutes before distribution to fix spelling, grammar, and factual errors." },
+      { t: "Matter Arising", d: "reviewing progress on decisions made during the previous meeting." },
+      { t: "Any Other Business (A.O.B.)", d: "a section at the end of the agenda for unexpected additional items." },
+      { t: "Meeting Venue", d: "the specific location or digital platform where the meeting was conducted." },
+      { t: "Chairperson role", d: "the officer presiding over the meeting and approving the final written minutes." },
+      { t: "Secretary role", d: "the appointed officer responsible for taking brief notes and drafting official minutes." },
+      { t: "Official record function", d: "serving as legal and organizational proof of decisions and tracked responsibilities." }
+    ];
+    for (let i = 0; i < 20; i++) {
+      let item = pool[i % pool.length];
+      let wrong1 = pool[(i + 1) % pool.length], wrong2 = pool[(i + 2) % pool.length], wrong3 = pool[(i + 3) % pool.length];
+      questions.push({ q: `What term in minutes writing refers to ${item.d}?`, options: shuffle([{ text: item.t, correct: true, exp: `${item.t} is defined as ${item.d}` }, { text: wrong1.t, correct: false, exp: `${wrong1.t} is defined as ${wrong1.d}` }, { text: wrong2.t, correct: false, exp: `${wrong2.t} is defined as ${wrong2.d}` }, { text: wrong3.t, correct: false, exp: `${wrong3.t} is defined as ${wrong3.d}` }]) });
+    }
+    for (let i = 0; i < 10; i++) {
+      let item = pool[i * 2], wrong1 = pool[(i * 2 + 1) % pool.length], wrong2 = pool[(i * 2 + 1) % pool.length], wrong3 = pool[(i * 2 + 5) % pool.length];
+      questions.push({ q: `[Revision Refresh] In meeting minutes documentation, which term applies when ${item.d.toLowerCase()}?`, options: shuffle([{ text: item.t, correct: true, exp: `${item.t} is defined as ${item.d}` }, { text: wrong1.t, correct: false, exp: `${wrong1.t} is defined as ${wrong1.d}` }, { text: wrong2.t, correct: false, exp: `${wrong2.t} is defined as ${wrong2.d}` }, { text: wrong3.t, correct: false, exp: `${wrong3.t} is defined as ${wrong3.d}` }]) });
+    }
+  }
+  return questions;
+}
+
+function shuffle(array) {
+  let currentIndex = array.length, randomIndex;
+  while (currentIndex != 0) {
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex--;
+    [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+  }
+  return array;
+}
+
+function goToSlideIntro(slideNum) {
+  currentSlide = slideNum;
+  currentQIndex = 0;
+  questionsInSlide = generateQuestionsForSlide(slideNum);
+
+  document.getElementById("page-welcome").classList.add("hidden");
+  document.getElementById("page-fun").classList.add("hidden");
+  document.getElementById("page-question").classList.add("hidden");
+  document.getElementById("page-completion").classList.add("hidden");
+
+  document.getElementById("intro-slide-badge").innerText = `Slide ${slideNum} of 5`;
+  document.getElementById("intro-title").innerText = slideMeta[slideNum].title;
+  document.getElementById("intro-desc").innerText = slideMeta[slideNum].desc;
+
+  document.getElementById("page-intro").classList.remove("hidden");
+}
+
+function startQuestion() {
+  document.getElementById("page-intro").classList.add("hidden");
+  document.getElementById("page-fun").classList.add("hidden");
+  document.getElementById("page-question").classList.remove("hidden");
+
+  renderQuestion();
+}
+
+function renderQuestion() {
+  answeredCurrentQ = false;
+  const qData = questionsInSlide[currentQIndex];
+
+  document.getElementById("q-slide-badge").innerText = `Slide ${currentSlide}`;
+  document.getElementById("q-number").innerText = `Question ${currentQIndex + 1} of ${questionsInSlide.length}`;
+  document.getElementById("q-text").innerText = qData.q;
+
+  const feedbackBox = document.getElementById("feedback-box");
+  feedbackBox.style.display = "none";
+  feedbackBox.className = "feedback";
+  feedbackBox.innerHTML = "";
+
+  document.getElementById("next-q-btn").classList.add("hidden");
+
+  const optionsContainer = document.getElementById("options-container");
+  optionsContainer.innerHTML = "";
+
+  qData.options.forEach((opt, idx) => {
+    const btn = document.createElement("button");
+    btn.className = "option-btn";
+    btn.innerText = `${String.fromCharCode(65 + idx)}. ${opt.text}`;
+    btn.onclick = () => selectOption(opt, btn);
+    optionsContainer.appendChild(btn);
+  });
+}
+
+function selectOption(option, btnElement) {
+  const feedbackBox = document.getElementById("feedback-box");
+  feedbackBox.style.display = "block";
+
+  if (option.correct) {
+    if (!answeredCurrentQ) {
+      userScore++;
+      updateScoreDisplay();
+      answeredCurrentQ = true;
+    }
+    feedbackBox.className = "feedback correct";
+    feedbackBox.innerHTML = `<strong>✔️ Correct! (+1 point)</strong><br>${option.exp}`;
+    document.getElementById("next-q-btn").classList.remove("hidden");
+    
+    const btns = document.querySelectorAll(".option-btn");
+    btns.forEach(b => b.style.pointerEvents = "none");
+    btnElement.style.borderColor = "#28a745";
+    btnElement.style.backgroundColor = "#d4edda";
+  } else {
+    answeredCurrentQ = true; // no points added on wrong answer
+    feedbackBox.className = "feedback wrong";
+    feedbackBox.innerHTML = `<strong>❌ Incorrect</strong><br>${option.exp}`;
+    btnElement.style.borderColor = "#dc3545";
+    btnElement.style.backgroundColor = "#f8d7da";
+  }
+}
+
+function nextQuestion() {
+  currentQIndex++;
+  
+  if (currentQIndex > 0 && currentQIndex % 5 === 0) {
+    showFunPage();
+  } else if (currentQIndex < questionsInSlide.length) {
+    renderQuestion();
+  } else {
+    if (currentSlide < 5) {
+      goToSlideIntro(currentSlide + 1);
+    } else {
+      showCompletionPage();
+    }
+  }
+}
+
+function showFunPage() {
+  document.getElementById("page-question").classList.add("hidden");
+  
+  const funIndex = (currentQIndex / 5) - 1;
+  const funList = slideFunFacts[currentSlide];
+  const funData = funList[Math.min(funIndex, funList.length - 1)];
+
+  document.getElementById("fun-badge").innerText = funData.type;
+  document.getElementById("fun-title").innerText = funData.title;
+  document.getElementById("fun-text").innerText = funData.text;
+
+  document.getElementById("page-fun").classList.remove("hidden");
+}
+
+function continueFromFun() {
+  document.getElementById("page-fun").classList.add("hidden");
+  
+  if (currentQIndex < questionsInSlide.length) {
+    document.getElementById("page-question").classList.remove("hidden");
+    renderQuestion();
+  } else {
+    if (currentSlide < 5) {
+      goToSlideIntro(currentSlide + 1);
+    } else {
+      showCompletionPage();
+    }
+  }
+}
+
+function showCompletionPage() {
+  document.getElementById("page-question").classList.add("hidden");
+  document.getElementById("final-score-text").innerText = `🎯 Total Score Achieved: ${userScore} / 150 points!`;
+  document.getElementById("page-completion").classList.remove("hidden");
+}
+
+function restartApp() {
+  document.getElementById("page-completion").classList.add("hidden");
+  userScore = 0;
+  updateScoreDisplay();
+  goToSlideIntro(1);
+}
+
+function finishApp() {
+  document.getElementById("page-completion").classList.add("hidden");
+  document.getElementById("end-score-summary").innerText = `Final Revision Score: ${userScore} / 150 points ⭐`;
+  document.getElementById("page-final").classList.remove("hidden");
+}
+</script>
+</body>
+</html>
